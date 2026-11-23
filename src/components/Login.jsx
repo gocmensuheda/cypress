@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Form, FormGroup, Label, Input, Button, FormFeedback } from 'reactstrap';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -9,9 +9,13 @@ const initialForm = {
   terms: false,
 };
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
 const errorMessages = {
   email: 'Geçerli bir e-posta adresi giriniz.',
-  password: 'Şifre en az 4 karakter olmalıdır.',
+  password:
+    'Şifre en az 8 karakter olmalı; en az 1 büyük harf, 1 küçük harf ve 1 rakam içermelidir.',
 };
 
 export default function Login() {
@@ -20,15 +24,12 @@ export default function Login() {
     email: '',
     password: '',
   });
-  const [isValid, setIsValid] = useState(false);
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const emailValid = form.email.includes('@') && form.email.includes('.');
-    const passwordValid = form.password.length >= 4;
-    setIsValid(emailValid && passwordValid && form.terms);
-  }, [form]);
+  const isValid =
+    emailRegex.test(form.email) &&
+    strongPasswordRegex.test(form.password) &&
+    form.terms;
 
   const handleChange = (event) => {
     const { name, type, checked, value } = event.target;
@@ -40,17 +41,16 @@ export default function Login() {
     }));
 
     if (name === 'email') {
-      const emailValid = nextValue.includes('@') && nextValue.includes('.');
       setErrors((prev) => ({
         ...prev,
-        email: emailValid ? '' : errorMessages.email,
+        email: emailRegex.test(nextValue) ? '' : errorMessages.email,
       }));
     }
 
     if (name === 'password') {
       setErrors((prev) => ({
         ...prev,
-        password: nextValue.length >= 4 ? '' : errorMessages.password,
+        password: strongPasswordRegex.test(nextValue) ? '' : errorMessages.password,
       }));
     }
   };
